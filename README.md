@@ -197,13 +197,6 @@ adapter.setup({
 })
 ```
 
-## Example Plugins
-
-See these example plugins built with sast-nvim:
-
-- [revive-diagnostics.nvim](../revive-diagnostics.nvim) - Go linter (revive)
-- [semgrep-diagnostics.nvim](../lua/semgrep-diagnostics) - Multi-language SAST (semgrep)
-
 ## JSON Output Requirements
 
 Tools must output JSON that can be parsed as an array or an object with a `results` array:
