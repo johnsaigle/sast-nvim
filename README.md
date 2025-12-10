@@ -260,4 +260,3 @@ Then require it:
 ```lua
 local sast = require('sast-nvim')
 ```
-# sast-nvim
