@@ -32,13 +32,15 @@ function M.create_adapter(spec)
 
 	--- Run the SAST tool scan
 	---@param params table Parameters from null-ls
-	function adapter.run_scan(params)
+	---@param callback function(diagnostics) Callback to return diagnostics
+	function adapter.run_scan(params, callback)
 		local filepath = vim.api.nvim_buf_get_name(params.bufnr)
 		
 		-- Build command using the adapter's build_args function
 		local cmd, args = runner.build_command(spec, adapter.config, filepath)
 		if not cmd then
-			return -- Error already notified by build_command
+			callback({}) -- Return empty diagnostics on error
+			return
 		end
 
 		-- Execute the command asynchronously
@@ -46,6 +48,7 @@ function M.create_adapter(spec)
 			-- Parse JSON output
 			local results = diagnostics.parse_json_output(stdout, spec.name)
 			if not results then
+				callback({})
 				return
 			end
 
@@ -58,8 +61,8 @@ function M.create_adapter(spec)
 				spec.name
 			)
 
-			-- Update diagnostics in buffer
-			diagnostics.update_diagnostics(adapter.namespace, params.bufnr, diags)
+			-- Return diagnostics via callback for none-ls to manage
+			callback(diags)
 		end)
 	end
 
@@ -91,7 +94,8 @@ function M.create_adapter(spec)
 				runtime_condition = function()
 					return adapter.config.enabled
 				end,
-				fn = function(params)
+				async = true,
+				fn = function(params, done)
 					-- Handle debouncing for "change" mode
 					if adapter.config.run_mode == "change" then
 						-- Cancel any existing timer for this buffer
@@ -102,14 +106,11 @@ function M.create_adapter(spec)
 
 						-- Create a new timer that will run after debounce delay
 						adapter.debounce_timers[params.bufnr] = vim.defer_fn(function()
-							adapter.run_scan(params)
+							adapter.run_scan(params, done)
 						end, adapter.config.debounce_ms)
-
-						return {}
 					else
 						-- In save mode, run immediately
-						adapter.run_scan(params)
-						return {}
+						adapter.run_scan(params, done)
 					end
 				end
 			}
