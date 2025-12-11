@@ -45,6 +45,21 @@ function M.create_adapter(spec)
 
 		-- Execute the command asynchronously
 		runner.execute_async(cmd, args, function(stdout, stderr, exit_code)
+			-- Check for non-zero exit code
+			if exit_code ~= 0 then
+				local error_msg = string.format(
+					"%s execution failed with exit code %d",
+					spec.name,
+					exit_code
+				)
+				if stderr and stderr ~= "" then
+					error_msg = error_msg .. ":\n" .. stderr
+				end
+				vim.notify(error_msg, vim.log.levels.ERROR)
+				callback({})
+				return
+			end
+
 			-- Parse JSON output
 			local results = diagnostics.parse_json_output(stdout, spec.name)
 			if not results then
