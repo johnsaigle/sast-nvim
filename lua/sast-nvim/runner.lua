@@ -23,7 +23,7 @@ function M.build_command(spec, config, filepath)
 		local exe_list = table.concat(executables, ", ")
 		vim.notify(
 			string.format("No executable found in PATH: %s", exe_list),
-			vim.log.levels.ERROR
+			vim.log.levels.WARN
 		)
 		return nil, nil
 	end
