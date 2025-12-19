@@ -45,6 +45,10 @@ function M.create_adapter(spec)
 
 		-- Execute the command asynchronously
 		runner.execute_async(cmd, args, function(stdout, stderr, exit_code)
+			-- Note: We don't check exit_code here because many SAST tools
+			-- return non-zero exit codes when they find issues, not when they fail.
+			-- Instead, rely on JSON parsing failure to detect execution problems.
+			
 			-- Parse JSON output
 			local results = diagnostics.parse_json_output(stdout, spec.name)
 			if not results then

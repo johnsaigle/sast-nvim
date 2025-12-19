@@ -22,7 +22,7 @@ function M.parse_json_output(stdout, tool_name)
 end
 
 --- Transform tool results to Neovim diagnostics
----@param results table Parsed JSON results
+---@param results table|nil Parsed JSON results
 ---@param validate_fn function(result) -> boolean Validation function
 ---@param transform_fn function(result, config) -> table Transform function
 ---@param config table Adapter configuration
@@ -30,6 +30,11 @@ end
 ---@return table Neovim diagnostics
 function M.transform_results(results, validate_fn, transform_fn, config, tool_name)
 	local diags = {}
+
+	-- Return empty diagnostics if results is nil or not a table
+	if not results or type(results) ~= "table" then
+		return diags
+	end
 
 	-- Handle different result structures - some tools wrap in a results array
 	local results_array = results.results or results
